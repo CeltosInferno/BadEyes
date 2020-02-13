@@ -583,6 +583,7 @@ GameObject:
   - component: {fileID: 5414731510015888540}
   - component: {fileID: 5414731510016088286}
   - component: {fileID: 5414731510015991168}
+  - component: {fileID: 6997356485180626108}
   m_Layer: 8
   m_Name: OVRPlayerController
   m_TagString: Untagged
@@ -679,6 +680,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b71d1996d67004241a3b69960856ffcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &6997356485180626108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5414731510008838526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a18c29ab587a43144af4b60d15c24d86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  postProcessingProfile: {fileID: 11400000, guid: 6e1f59403ff080445b09e4177471d69b,
+    type: 2}
+  myopia:
+    startFocusDistance: 0.3
+    gapOfDepthOfField: 0.2
+    startFocalLength: 12
+  hypermetropia:
+    gapOfDepthOfField: 0.2
+    minFocalLength: 70
+    maxFocalLength: 36
+    startFocalLength: 70
+    startFocusDistance: 10
 --- !u!1 &5414731510008972994
 GameObject:
   m_ObjectHideFlags: 0
