@@ -15,6 +15,7 @@ public class InputManager : MonoBehaviour
     private GameObject bothCanvas;
     private Canvas rightCanvas;
     private Canvas leftCanvas;
+    private Coroutine m_coroutine;
 
     [System.Serializable]
     public class BadView
@@ -139,5 +140,17 @@ public class InputManager : MonoBehaviour
         //Changing the view
         rightCanvas.GetComponentInChildren<TextMeshProUGUI>().text = ListOfViews[currentIndexView].m_ViewName;
         leftCanvas.GetComponentInChildren<TextMeshProUGUI>().text = ListOfViews[currentIndexView].m_ViewName;
+
+        //Display for a certain time canvas
+        if(m_coroutine!=null) StopCoroutine(m_coroutine);
+        m_coroutine = StartCoroutine("DisplayChangingView");
+    }
+
+
+    IEnumerator DisplayChangingView()
+    {
+        bothCanvas.SetActive(true);
+        yield return new WaitForSeconds(5);
+        bothCanvas.SetActive(false);
     }
 }
