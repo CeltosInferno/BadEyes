@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
+using TMPro;
 
 public class InputManager : MonoBehaviour
 {
@@ -9,6 +10,11 @@ public class InputManager : MonoBehaviour
     public DepthOfField depthOfField;
     private List<BadView> ListOfViews;
     private int currentIndexView;
+
+    [SerializeField]
+    private GameObject bothCanvas;
+    private Canvas rightCanvas;
+    private Canvas leftCanvas;
 
     [System.Serializable]
     public class BadView
@@ -33,7 +39,6 @@ public class InputManager : MonoBehaviour
     [System.Serializable]
     public class Myopia : BadView
     {
-
         public Myopia() : base("Myopie", 25.0f, 80.0f, 1.68f, 0.3f) {}
     }
 
@@ -46,9 +51,17 @@ public class InputManager : MonoBehaviour
     
     public Hypermetropia hypermetropia;
     public Myopia myopia;
+    //To do
+    //public None none;
 
     private void Start()
     {
+
+        //Setup du canvas de changement de vue
+        rightCanvas = bothCanvas.GetComponentsInChildren<Canvas>()[0];
+        leftCanvas = bothCanvas.GetComponentsInChildren<Canvas>()[1];
+
+        //Setup des differents problèmes de vue
         depthOfField = postProcessingProfile.GetSetting<DepthOfField>();
 
         currentIndexView = 0;
@@ -122,5 +135,9 @@ public class InputManager : MonoBehaviour
         Debug.Log("Switching view to : " + ListOfViews[currentIndexView].m_ViewName);
         depthOfField.focalLength.value = ListOfViews[currentIndexView].m_minFocalLength;
         depthOfField.focusDistance.value = ListOfViews[currentIndexView].m_focusDistance;
+
+        //Changing the view
+        rightCanvas.GetComponentInChildren<TextMeshProUGUI>().text = ListOfViews[currentIndexView].m_ViewName;
+        leftCanvas.GetComponentInChildren<TextMeshProUGUI>().text = ListOfViews[currentIndexView].m_ViewName;
     }
 }
