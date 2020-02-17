@@ -2,46 +2,91 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.UI;
+using TMPro;
 
 public class InputManager : MonoBehaviour
 {
     public PostProcessProfile postProcessingProfile;
-    DepthOfField depthOfField;
+    public DepthOfField depthOfField;
+    private List<BadView> ListOfViews;
+    private int currentIndexView;
+
+    [SerializeField]
+    private GameObject m_Canvas;
+    [SerializeField]
+    private GameObject m_CanvasLeft;
+    [SerializeField]
+    private GameObject m_CanvasRight;
+    private Button m_button;
+    private Coroutine m_coroutine;
+    [SerializeField]
+    private float displayCoroutineTime = 3.0f;
 
     [System.Serializable]
-    public class Myopia
+    public class BadView
     {
-        [HideInInspector]
-        public const float minFocalLength = 12.0f;
-        [HideInInspector]
-        public const float maxFocalLength = 36.0f;
-        [HideInInspector]
-        public float startFocusDistance = 0.3f;
+        public string m_ViewName;
+        public float m_minFocalLength;
+        public float m_maxFocalLength;
+        public float m_focusDistance;
 
-        public float gapOfDepthOfField = 0.2f;
-        [Range(minFocalLength, maxFocalLength)]
-        public float startFocalLength = 12.0f;
+        public float m_gapOfDepthOfField;
+
+        public BadView(string ViewName, float minFocalLength, float maxFocalLength,float focusDistance, float gapOfDepthOfField)
+        {
+            m_ViewName = ViewName;
+            m_minFocalLength = minFocalLength;
+            m_maxFocalLength = maxFocalLength;
+            m_focusDistance = focusDistance;
+            m_gapOfDepthOfField = gapOfDepthOfField;
+        }
     }
 
     [System.Serializable]
-    public class Hypermetropia
+    public class Myopia : BadView
     {
-        public float gapOfDepthOfField = 0.2f;
-        public float minFocalLength = 70.0f;
-        public float maxFocalLength = 36.0f;
-        public float startFocalLength = 70.0f;
-        public float startFocusDistance = 10.0f;
+        public Myopia() : base("Myopie", 25.0f, 80.0f, 1.68f, 0.5f) {}
     }
 
-    public Myopia myopia = new Myopia();
-    public Hypermetropia hypermetropia = new Hypermetropia();
+    [System.Serializable]
+    public class Hypermetropia : BadView
+    {
+        public Hypermetropia() : base("Hypermétropie", 20.0f, 75.0f, 20f, 0.5f) {}
+    }
+
+    
+    public Hypermetropia hypermetropia;
+    public Myopia myopia;
+    //To do
+    //public None none;
 
     private void Start()
     {
+
+        //Setup du canvas de changement de vue
+        m_button = m_Canvas.GetComponentInChildren<Button>();
+
+        //Setup des differents problèmes de vue
         depthOfField = postProcessingProfile.GetSetting<DepthOfField>();
 
-        depthOfField.focalLength.value = myopia.startFocalLength;
-        depthOfField.focusDistance.value = myopia.startFocusDistance;
+        currentIndexView = 0;
+        ListOfViews = new List<BadView>();
+
+        myopia = new Myopia();
+        ListOfViews.Add(myopia);
+        hypermetropia = new Hypermetropia();
+        ListOfViews.Add(hypermetropia);
+
+
+        if (ListOfViews.Count != 0)
+        {
+            SwitchView();
+        }
+        else
+        {
+            Debug.Log("Error : there is no view (yenapa)");
+        }
     }
 
     private void Update()
@@ -50,10 +95,9 @@ public class InputManager : MonoBehaviour
         if (OVRInput.Get(OVRInput.Button.Two))
         {
             Debug.Log("B button pressed");
-            if (depthOfField.focalLength.value <= Myopia.maxFocalLength)
+            if (depthOfField.focalLength.value <= ListOfViews[currentIndexView].m_maxFocalLength)
             {
-                depthOfField.focalLength.value += myopia.gapOfDepthOfField;
-                
+                depthOfField.focalLength.value += ListOfViews[currentIndexView].m_gapOfDepthOfField;
             }
         }
 
@@ -61,16 +105,60 @@ public class InputManager : MonoBehaviour
         if (OVRInput.Get(OVRInput.Button.One))
         {
             Debug.Log("A button pressed");
-            if(depthOfField.focalLength.value >= Myopia.minFocalLength)
+            if(depthOfField.focalLength.value >= ListOfViews[currentIndexView].m_minFocalLength)
             {
-                depthOfField.focalLength.value -= myopia.gapOfDepthOfField;
+                depthOfField.focalLength.value -= ListOfViews[currentIndexView].m_gapOfDepthOfField;
             }
         }
 
         if (OVRInput.GetDown(OVRInput.Button.SecondaryThumbstickUp))
         {
             Debug.Log("SecondaryThumbstickUp button pressed");
-
+            ++currentIndexView;
+            if (currentIndexView >= ListOfViews.Count)
+            {
+                currentIndexView = 0;
+            }
+            SwitchView();
         }
+        if (OVRInput.GetDown(OVRInput.Button.SecondaryThumbstickDown))
+        {
+            Debug.Log("SecondaryThumbstickDown button pressed");
+            --currentIndexView;
+            if (currentIndexView<0)
+            {
+                currentIndexView = ListOfViews.Count - 1;
+            }
+            SwitchView();
+        }
+
+
+    }
+
+
+    public void SwitchView()
+    {
+        Debug.Log("Switching view to : " + ListOfViews[currentIndexView].m_ViewName);
+        depthOfField.focalLength.value = ListOfViews[currentIndexView].m_minFocalLength;
+        depthOfField.focusDistance.value = ListOfViews[currentIndexView].m_focusDistance;
+
+        //Changing the view
+
+        //Display for a certain time canvas
+        if(m_coroutine!=null) StopCoroutine(m_coroutine);
+        m_coroutine = StartCoroutine("DisplayChangingView");
+    }
+
+
+    IEnumerator DisplayChangingView()
+    {
+        m_button.GetComponentInChildren<Text>().text = ListOfViews[currentIndexView].m_ViewName;
+        m_Canvas.SetActive(true);
+        m_CanvasLeft.SetActive(true);
+        m_CanvasRight.SetActive(true);
+        yield return new WaitForSeconds(displayCoroutineTime);
+        m_Canvas.SetActive(false);
+        m_CanvasLeft.SetActive(false);
+        m_CanvasRight.SetActive(false);
     }
 }
