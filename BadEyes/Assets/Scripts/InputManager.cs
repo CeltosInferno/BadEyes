@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.UI;
 using TMPro;
 
 public class InputManager : MonoBehaviour
@@ -12,10 +13,15 @@ public class InputManager : MonoBehaviour
     private int currentIndexView;
 
     [SerializeField]
-    private GameObject bothCanvas;
-    private Canvas rightCanvas;
-    private Canvas leftCanvas;
+    private GameObject m_Canvas;
+    [SerializeField]
+    private GameObject m_CanvasLeft;
+    [SerializeField]
+    private GameObject m_CanvasRight;
+    private Button m_button;
     private Coroutine m_coroutine;
+    [SerializeField]
+    private float displayCoroutineTime = 3.0f;
 
     [System.Serializable]
     public class BadView
@@ -40,13 +46,13 @@ public class InputManager : MonoBehaviour
     [System.Serializable]
     public class Myopia : BadView
     {
-        public Myopia() : base("Myopie", 25.0f, 80.0f, 1.68f, 0.3f) {}
+        public Myopia() : base("Myopie", 25.0f, 80.0f, 1.68f, 0.5f) {}
     }
 
     [System.Serializable]
     public class Hypermetropia : BadView
     {
-        public Hypermetropia() : base("Hypermetropie", 70.0f, 300.0f, 50f, 1.0f) {}
+        public Hypermetropia() : base("Hypermétropie", 20.0f, 75.0f, 20f, 0.5f) {}
     }
 
     
@@ -59,8 +65,7 @@ public class InputManager : MonoBehaviour
     {
 
         //Setup du canvas de changement de vue
-        rightCanvas = bothCanvas.GetComponentsInChildren<Canvas>()[0];
-        leftCanvas = bothCanvas.GetComponentsInChildren<Canvas>()[1];
+        m_button = m_Canvas.GetComponentInChildren<Button>();
 
         //Setup des differents problèmes de vue
         depthOfField = postProcessingProfile.GetSetting<DepthOfField>();
@@ -138,8 +143,6 @@ public class InputManager : MonoBehaviour
         depthOfField.focusDistance.value = ListOfViews[currentIndexView].m_focusDistance;
 
         //Changing the view
-        rightCanvas.GetComponentInChildren<TextMeshProUGUI>().text = ListOfViews[currentIndexView].m_ViewName;
-        leftCanvas.GetComponentInChildren<TextMeshProUGUI>().text = ListOfViews[currentIndexView].m_ViewName;
 
         //Display for a certain time canvas
         if(m_coroutine!=null) StopCoroutine(m_coroutine);
@@ -149,8 +152,13 @@ public class InputManager : MonoBehaviour
 
     IEnumerator DisplayChangingView()
     {
-        bothCanvas.SetActive(true);
-        yield return new WaitForSeconds(5);
-        bothCanvas.SetActive(false);
+        m_button.GetComponentInChildren<Text>().text = ListOfViews[currentIndexView].m_ViewName;
+        m_Canvas.SetActive(true);
+        m_CanvasLeft.SetActive(true);
+        m_CanvasRight.SetActive(true);
+        yield return new WaitForSeconds(displayCoroutineTime);
+        m_Canvas.SetActive(false);
+        m_CanvasLeft.SetActive(false);
+        m_CanvasRight.SetActive(false);
     }
 }
